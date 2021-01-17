@@ -95,7 +95,7 @@ const looksLikeWorkspaceHostname = (originHostname: string, gitpodHostName: stri
         return false;
     }
 
-    return parts[0].split("-").length === 5;
+    return parts[0].split("-").length === 4;
 };
 
 export function saveSession(reqOrSession: express.Request | Express.Session): Promise<void> {

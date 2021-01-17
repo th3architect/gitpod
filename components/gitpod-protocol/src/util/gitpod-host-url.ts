@@ -12,7 +12,7 @@ export interface UrlChange {
 }
 export type UrlUpdate = UrlChange | Partial<URL>;
 
-export const workspaceIDRegex = /([a-z0-9]{4,8}-)+([a-z0-9]{12})/;
+export const workspaceIDRegex = /([a-z]+-[a-z]+-[a-z]+-[0-9a-f]{8})/;
 
 export class GitpodHostUrl {
     readonly url: URL;

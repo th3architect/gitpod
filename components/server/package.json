@@ -76,6 +76,7 @@
     "request": "^2.87.0",
     "request-promise": "^4.2.2",
     "swot-js": "^1.0.3",
+    "unique-names-generator": "^4.3.1",
     "uuid": "^3.1.0",
     "vscode-ws-jsonrpc": "^0.2.0",
     "ws": "^5.2.2"

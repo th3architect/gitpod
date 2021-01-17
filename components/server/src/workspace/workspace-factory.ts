@@ -21,6 +21,7 @@ import { ImageBuilderClientProvider } from '@gitpod/image-builder/lib';
 import { TracedWorkspaceDB, DBWithTracing } from '@gitpod/gitpod-db/lib/traced-db';
 import { ImageSourceProvider } from './image-source-provider';
 import { TheiaPluginService } from '../theia-plugin/theia-plugin-service';
+import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 
 @injectable()
 export class WorkspaceFactory {
@@ -188,12 +189,13 @@ export class WorkspaceFactory {
     }
 
     protected generateWorkspaceId(): string {
-        var uuid
-        do {
-            uuid = uuidv4()
-        }
-        while (uuid.charAt(0).match("[0-9]") != null)   // No numbers as first char, as we use this id as DNS name
-        return uuid
+        const randomName: string = uniqueNamesGenerator({
+            dictionaries: [adjectives, colors, animals],
+            separator: '-',
+            length: 3,
+        });
+        
+        return randomName + "-" + uuidv4().substring(0,8);
     }
 
 }
