@@ -26,6 +26,7 @@ import { UserService } from "../user/user-service";
 import { AuthProviderService } from './auth-provider-service';
 import { LoginCompletionHandler } from './login-completion-handler';
 import { TosFlow } from '../terms/tos-flow';
+import { increaseLoginCounter } from '../../src/prometheusMetrics';
 
 /**
  * This is a generic implementation of OAuth2-based AuthProvider.
@@ -258,6 +259,7 @@ export class GenericAuthProvider implements AuthProvider {
         const strategyName = this.strategyName;
         const clientInfo = getRequestingClientInfo(request);
         const cxt = LogContext.from({ user: request.user });
+        const authHost = request.get('host')
         if (response.headersSent) {
             log.warn(cxt, `(${strategyName}) Callback called repeatedly.`, { request, clientInfo });
             return;
@@ -276,6 +278,9 @@ export class GenericAuthProvider implements AuthProvider {
 
         // assert additional infomation is attached to current session
         if (!authFlow) {
+            if (authHost) {
+                increaseLoginCounter("failed", authHost)
+            } 
             log.error(cxt, `(${strategyName}) No session found during auth callback.`, { request, clientInfo });
             response.redirect(this.getSorryUrl(`Please allow Cookies in your browser and try to log in again.`));
             return;
@@ -284,11 +289,15 @@ export class GenericAuthProvider implements AuthProvider {
         const defaultLogPayload = { authFlow, clientInfo, authProviderId, request };
 
         // check OAuth2 errors
-        const error = new URL(formatURL({ protocol: request.protocol, host: request.get('host'), pathname: request.originalUrl })).searchParams.get("error");
+        const error = new URL(formatURL({ protocol: request.protocol, host: authHost, pathname: request.originalUrl })).searchParams.get("error");
         if (error) { // e.g. "access_denied"
             // Clean up the session
             await AuthFlow.clear(request.session);
             await TosFlow.clear(request.session);
+
+            if (authHost) {
+                increaseLoginCounter("failed", authHost)
+            }
 
             log.info(cxt, `(${strategyName}) Received OAuth2 error, thus redirecting to /sorry (${error})`, { ...defaultLogPayload, requestUrl: request.originalUrl });
             response.redirect(this.getSorryUrl(`OAuth2 error. (${error})`));
@@ -302,6 +311,9 @@ export class GenericAuthProvider implements AuthProvider {
                 authenticate(request, response, next);
             })
         } catch (error) {
+            if (authHost) {
+                increaseLoginCounter("failed", authHost)
+            }
             response.redirect(this.getSorryUrl(`OAuth2 error. (${error})`));
             return;
         }
@@ -335,6 +347,9 @@ export class GenericAuthProvider implements AuthProvider {
             }
             if (this.isOAuthError(err)) {
                 message = 'OAuth Error. Please try again.'; // this is a 5xx response from authorization service
+            }
+            if (authHost) {
+                increaseLoginCounter("failed", authHost)
             }
             log.error(context, `(${strategyName}) Redirect to /sorry from verify callback`, err, { ...defaultLogPayload, err });
             response.redirect(this.getSorryUrl(message));

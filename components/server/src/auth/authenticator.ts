@@ -130,9 +130,6 @@ export class Authenticator {
         });
         // authenticate user
         authProvider.authorize(req, res, next);
-        // TODO (arthursens): the line below is wrong!
-        // We are increasing the succesful counter even if authorization failed
-        increaseLoginCounter("succeeded", authProvider.info.host)
     }
     protected async isInSetupMode() {
         const hasAnyStaticProviders = this.hostContextProvider.getAll().some(hc => hc.authProvider.config.builtin === true);
