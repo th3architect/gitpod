@@ -14,6 +14,7 @@ import { injectable, inject } from 'inversify';
 import { UserDB } from '@gitpod/gitpod-db/lib/user-db';
 import { WithResourceAccessGuard, TokenResourceGuard } from './resource-access';
 import { WithFunctionAccessGuard, ExplicitFunctionAccessGuard, AllAccessFunctionGuard } from './function-access';
+import { log } from '@gitpod/gitpod-protocol/lib/util/logging';
 
 export function getBearerToken(headers: Headers): string | undefined {
     const authorizationHeader = headers["authorization"];
@@ -56,6 +57,7 @@ export class BearerAuth {
                 .filter(s => s.startsWith("function:"))
                 .map(s => s.substring("function:".length));
             if (functionScopes.length === 1 && functionScopes[0] === "*") {
+                log.debug("Websocket Handler: User token has no function scope restrictions. Using 'AllAccessFunctionGuard'.");
                 (req as WithFunctionAccessGuard).functionGuard = new AllAccessFunctionGuard();
             } else {
                 // We always install a function access guard. If the token has no scopes, it's not allowed to do anything.

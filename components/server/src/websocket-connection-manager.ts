@@ -44,7 +44,11 @@ export class WebsocketConnectionManager<C extends GitpodClient, S extends Gitpod
     }
 
     protected createAccessGuard(request?: object): FunctionAccessGuard {
-        return (request && (request as WithFunctionAccessGuard).functionGuard) || new AllAccessFunctionGuard();
+        const allAccessFunctionGuard = () => {
+            log.debug("Websocket Connection Manager: Request does not bring a function guard. Using 'AllAccessFunctionGuard' instead.");
+            return new AllAccessFunctionGuard();
+        }
+        return (request && (request as WithFunctionAccessGuard).functionGuard) || allAccessFunctionGuard();
     }
 
     protected createProxyTarget(client: JsonRpcProxy<C>, request?: object): GitpodServerImpl<C, S> {

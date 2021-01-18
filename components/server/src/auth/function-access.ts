@@ -5,6 +5,7 @@
  */
 
 import { injectable } from "inversify";
+import { log } from "@gitpod/gitpod-protocol/lib/util/logging";
 
 export interface FunctionAccessGuard {
     canAccess(name: string): boolean;
@@ -17,6 +18,7 @@ export interface WithFunctionAccessGuard {
 @injectable()
 export class AllAccessFunctionGuard {
     canAccess(name: string): boolean {
+        log.debug("CLU: AllAccessFunctionGuard");
         return true;
     }
 }
@@ -25,6 +27,7 @@ export class ExplicitFunctionAccessGuard {
     constructor(protected readonly allowedCalls: string[]) {}
 
     canAccess(name: string): boolean {
+        log.debug("CLU: ExplicitFunctionAccessGuard");
         return this.allowedCalls.some(c => c === name);
     }
 }
