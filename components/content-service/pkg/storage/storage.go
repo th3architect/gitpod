@@ -278,7 +278,7 @@ func NewPresignedAccess(c *Config) (PresignedAccess, error) {
 }
 
 func extractTarbal(dest string, src io.Reader) error {
-	tarcmd := exec.Command("tar", "x")
+	tarcmd := exec.Command("tar", "--numeric-owner", "x")
 	tarcmd.Dir = dest
 	tarcmd.Stdin = src
 
